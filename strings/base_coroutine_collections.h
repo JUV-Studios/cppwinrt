@@ -30,9 +30,11 @@ namespace winrt::impl
 			return remaining;
 		}
 
-		winrt::Windows::Foundation::Collections::IIterable<TResult> get_return_object() noexcept
+		auto get_return_object() noexcept
 		{
-			return *this;
+			winrt::Windows::Foundation::Collections::IIterable<TResult> result(*this);
+			this->subtract_reference();
+			return result;
 		}
 
 		suspend_always initial_suspend() const noexcept
@@ -40,35 +42,9 @@ namespace winrt::impl
 			return {};
 		}
 
-		struct final_suspend_awaiter
+		suspend_always final_suspend() const noexcept
 		{
-			iterable_promise_base* promise;
-
-			bool await_ready() const noexcept
-			{
-				return false;
-			}
-
-			void await_resume() const noexcept
-			{
-			}
-
-			bool await_suspend(coroutine_handle<>) const noexcept
-			{
-				uint32_t const remaining = promise->subtract_reference();
-
-				if (remaining == 0)
-				{
-					std::atomic_thread_fence(std::memory_order_acquire);
-				}
-
-				return remaining > 0;
-			}
-		};
-
-		final_suspend_awaiter final_suspend() noexcept
-		{
-			return {this};
+			return {};
 		}
 
 		void unhandled_exception() const
