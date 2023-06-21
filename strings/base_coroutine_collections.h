@@ -119,18 +119,20 @@ namespace winrt::impl
 
 			uint32_t GetMany(array_view<TResult> values)
 			{
-				uint32_t count{ 0 };
-				for (auto it = values.begin(); it != values.end(); ++it)
+				if (!HasCurrent())
 				{
-					if (!MoveNext())
-					{
-						break;
-					}
-
-					*it = Current();
+					return 0;
 				}
 
-				return count;
+				auto it = values.begin();
+
+				do
+				{
+					*it++ = Current();
+				}
+				while (MoveNext() && it != values.end());
+
+				return static_cast<uint32_t>(std::distance(values.begin(), it));
 			}
 
 			bool MoveNext()
