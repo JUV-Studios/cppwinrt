@@ -148,7 +148,11 @@ namespace winrt::impl
 	};
 }
 
+#ifdef __cpp_lib_coroutine
 namespace std
+#else
+namespace std::experimental
+#endif
 {
 	template<typename T, typename... Args>
 	struct coroutine_traits<winrt::Windows::Foundation::Collections::IIterable<T>, Args...>
@@ -157,7 +161,7 @@ namespace std
 		{
 			suspend_always yield_value(T&& value) noexcept
 			{
-				m_result = value;
+				m_result = std::move(value);
 				winrt::impl::iterable_promise_base<promise_type, T>::on_value();
 				return {};
 			}
